@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "shader.cpp"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -21,7 +22,7 @@ glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f,  0.0f);
 glm::mat4 model = glm::mat4(1.0f);
 glm::mat4 view = glm::mat4(1.0f);
 glm::mat4 projection = glm::mat4(1.0f);
-glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+glm::vec3 lightPos(sin(glfwGetTime()), 0.2f, (cos(glfwGetTime())));
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 bool firstMouse = true;
@@ -30,58 +31,10 @@ float pitch =  0.0f;
 float lastX =  SCR_WIDTH / 2.0;
 float lastY =  SCR_HEIGHT / 2.0;
 float fov   =  45.0f;
-const char *vertexShaderSource = "#version 330 core\n"
-    "layout (location = 0) in vec3 aPos;\n"
-    "layout (location = 1) in vec3 aNormal;\n"
-    "uniform mat4 projection;\n"
-    "uniform mat4 view;\n"
-    "uniform mat4 model;\n"
-    "out vec3 Normal;\n"
-    "out vec3 FragPos;\n"
-    "void main()\n"
-    "{\n"
-    "   gl_Position = projection * view * model * vec4(aPos, 1.0);\n"
-    "   FragPos = vec3(model * vec4(aPos, 1.0));\n"
-    "   Normal = mat3(transpose(inverse(model))) * aNormal;\n"
-    "}\0";
-const char *fragmentShaderSource = "#version 330 core\n"
-    "out vec4 FragColor;\n"
-    "in vec3 Normal;\n"
-    "in vec3 FragPos;\n"
-    "uniform vec3 objectColor;\n"
-    "uniform vec3 lightColor;\n"
-    "uniform vec3 lightPos;\n"
-    "uniform vec3 viewPos;\n"
-    "void main()\n"
-    "{\n"
-    "   float ambientStrength = 0.1;\n"
-    "   float specularStrength = 0.5;\n"
-    "   vec3 ambient = ambientStrength * lightColor;\n"
-    "   vec3 norm = normalize(Normal);\n"
-    "   vec3 lightDir = normalize(lightPos - FragPos);\n"
-    "   float diff = max(dot(norm, lightDir), 0.0);\n"
-    "   vec3 diffuse = diff * lightColor;\n"
-    "   vec3 viewDir = normalize(viewPos - FragPos);\n"
-    "   vec3 reflectDir = reflect(-lightDir, norm);\n"
-    "   float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);\n"
-    "   vec3 specular = specularStrength * spec * lightColor;\n"
-    "   vec3 result = (ambient+diffuse+specular) * objectColor;\n"
-    "   FragColor = vec4(result, 1.0);\n"
-    "}\n\0";
-
-const char *lampFragmentShaderSource = "#version 330 core\n"
-    "out vec4 FragColor;\n"
-    "void main()\n"
-    "{\n"
-    "   FragColor = vec4(1.0);\n"
-    "}\n\0";
-
-
 
 int main()
 {
     // glfw: initialize and configure
-    // ------------------------------
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -92,7 +45,6 @@ int main()
 #endif
 
     // glfw window creation
-    // --------------------
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
     if (window == NULL)
     {
@@ -161,8 +113,10 @@ int main()
     };
     
     glEnable(GL_DEPTH_TEST);
-    unsigned int VBO, cubeVAO, lightVAO, vertexShader, fragmentShader, shaderProgram, lightFragmentShader, lightShaderProgram;
+    unsigned int VBO, cubeVAO, lightVAO;
     
+    Shader cubeShader("/Users/marekgarczewski/Desktop/opengltest/Learning-Lighting-in-OpenGL/openGL2/shader.vs", "/Users/marekgarczewski/Desktop/opengltest/Learning-Lighting-in-OpenGL/openGL2/shader.fs");
+    Shader lampShader("/Users/marekgarczewski/Desktop/opengltest/Learning-Lighting-in-OpenGL/openGL2/shader.vs", "/Users/marekgarczewski/Desktop/opengltest/Learning-Lighting-in-OpenGL/openGL2/lamp.fs");
     glad_glGenVertexArrays(1, &cubeVAO);
     glad_glGenBuffers(1, &VBO);
     
@@ -182,39 +136,7 @@ int main()
     glad_glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glad_glEnableVertexAttribArray(0);
     
-    
-    //SHADERS
-    vertexShader = glad_glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glad_glCompileShader(vertexShader);
-    
-    fragmentShader = glad_glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glad_glCompileShader(fragmentShader);
-    
-    lightFragmentShader = glad_glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(lightFragmentShader, 1, &lampFragmentShaderSource, NULL);
-    glad_glCompileShader(lightFragmentShader);
-    
-    shaderProgram = glad_glCreateProgram();
-    glad_glAttachShader(shaderProgram, vertexShader);
-    glad_glAttachShader(shaderProgram, fragmentShader);
-    glad_glLinkProgram(shaderProgram);
-    
-    lightShaderProgram = glad_glCreateProgram();
-    glad_glAttachShader(lightShaderProgram, vertexShader);
-    glad_glAttachShader(lightShaderProgram, lightFragmentShader);
-    glad_glLinkProgram(lightShaderProgram);
-    
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-    glDeleteShader(lightFragmentShader);
 
-    
-    
-    //END OF SHADERS
-    
-    
     
     // render loop
     // -----------
@@ -231,34 +153,37 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         //CUBE
-        glad_glUseProgram(shaderProgram);
-        glad_glUniform3f(glad_glGetUniformLocation(shaderProgram, "objectColor"), 1.0f, 0.5f, 0.31f);
-        glad_glUniform3f(glad_glGetUniformLocation(shaderProgram, "lightColor"), 1.0f, 1.0f, 1.0f);
-        glad_glUniform3f(glad_glGetUniformLocation(shaderProgram, "lightPos"), 1.2f, 1.0f, 2.0f);
-        glad_glUniform3f(glad_glGetUniformLocation(shaderProgram, "viewPos"), cameraPos.x, cameraPos.y, cameraPos.z);
-
+        cubeShader.use();
+        cubeShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
+        cubeShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+        cubeShader.setVec3("lightPos", lightPos.x, lightPos.y, lightPos.z);
+        cubeShader.setVec3("viewPos", cameraPos.x, cameraPos.y, cameraPos.z);
+        lightPos = glm::vec3(sin(glfwGetTime()), 0.2f, (cos(glfwGetTime())));
+        
         
         projection = glm::perspective(glm::radians(fov), SCR_WIDTH/static_cast<float>(SCR_HEIGHT), 0.1f, 100.0f);
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+        cubeShader.setMatrix4("projection", projection);
         view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
+        cubeShader.setMatrix4("view", view);
         model = glm::mat4(1.0f);
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+        cubeShader.setMatrix4("model", model);
+      
         
         glad_glBindVertexArray(cubeVAO);
         glad_glDrawArrays(GL_TRIANGLES, 0, 36);
         
         //LIGHT
-        glad_glUseProgram(lightShaderProgram);
+        lampShader.use();
+       
         projection = glm::perspective(glm::radians(fov), SCR_WIDTH/static_cast<float>(SCR_HEIGHT), 0.1f, 100.0f);
-        glUniformMatrix4fv(glGetUniformLocation(lightShaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+        lampShader.setMatrix4("projection", projection);
         view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-        glUniformMatrix4fv(glGetUniformLocation(lightShaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
-        
+        lampShader.setMatrix4("view", view);
+
         model = glm::mat4(1.0f);
         model = glm::translate(model, lightPos);
         model = glm::scale(model, glm::vec3(0.2f));
-        glUniformMatrix4fv(glGetUniformLocation(lightShaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+        lampShader.setMatrix4("model", model);
         glBindVertexArray(lightVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
         
@@ -331,8 +256,6 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
     cameraFront = glm::normalize(front);
 }
 
-// glfw: whenever the mouse scroll wheel scrolls, this callback is called
-// ----------------------------------------------------------------------
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     if (fov >= 1.0f && fov <= 45.0f)

@@ -12,6 +12,7 @@
 		630A231123B65CC600163F91 /* libglfw.3.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 630A231023B65CC600163F91 /* libglfw.3.3.dylib */; };
 		630A231623B65E7100163F91 /* libGLEW.2.1.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 630A231423B65D6300163F91 /* libGLEW.2.1.0.dylib */; };
 		630A231823B65FAD00163F91 /* glad.c in Sources */ = {isa = PBXBuildFile; fileRef = 630A231723B65FAD00163F91 /* glad.c */; };
+		630A231C23B6C61000163F91 /* shader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 630A231A23B6C61000163F91 /* shader.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -36,6 +37,11 @@
 		630A231423B65D6300163F91 /* libGLEW.2.1.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libGLEW.2.1.0.dylib; path = ../../../../../usr/local/Cellar/glew/2.1.0/lib/libGLEW.2.1.0.dylib; sourceTree = "<group>"; };
 		630A231723B65FAD00163F91 /* glad.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = glad.c; sourceTree = "<group>"; };
 		630A231923B662C100163F91 /* openGL2.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = openGL2.entitlements; sourceTree = "<group>"; };
+		630A231A23B6C61000163F91 /* shader.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = shader.cpp; sourceTree = "<group>"; };
+		630A231B23B6C61000163F91 /* shader.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = shader.hpp; sourceTree = "<group>"; };
+		630A231D23B6C6AF00163F91 /* shader.vs */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; path = shader.vs; sourceTree = "<group>"; };
+		630A231E23B6C74400163F91 /* shader.fs */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; path = shader.fs; sourceTree = "<group>"; };
+		630A232023B6CEEE00163F91 /* lamp.fs */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; path = lamp.fs; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -75,6 +81,11 @@
 			children = (
 				630A231923B662C100163F91 /* openGL2.entitlements */,
 				630A230423B65BFD00163F91 /* main.cpp */,
+				630A231A23B6C61000163F91 /* shader.cpp */,
+				630A231B23B6C61000163F91 /* shader.hpp */,
+				630A231E23B6C74400163F91 /* shader.fs */,
+				630A231D23B6C6AF00163F91 /* shader.vs */,
+				630A232023B6CEEE00163F91 /* lamp.fs */,
 			);
 			path = openGL2;
 			sourceTree = "<group>";
@@ -148,6 +159,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				630A231C23B6C61000163F91 /* shader.cpp in Sources */,
 				630A231823B65FAD00163F91 /* glad.c in Sources */,
 				630A230523B65BFD00163F91 /* main.cpp in Sources */,
 			);
