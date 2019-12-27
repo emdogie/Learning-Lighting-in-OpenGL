@@ -22,13 +22,13 @@ glm::mat4 model = glm::mat4(1.0f);
 glm::mat4 view = glm::mat4(1.0f);
 glm::mat4 projection = glm::mat4(1.0f);
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
-float deltaTime = 0.0f;    // Time between current frame and last frame
-float lastFrame = 0.0f; // Time of last frame
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
 bool firstMouse = true;
-float yaw   = -90.0f;    // yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right so we initially rotate a bit to the left.
+float yaw   = -90.0f;
 float pitch =  0.0f;
-float lastX =  800.0f / 2.0;
-float lastY =  600.0 / 2.0;
+float lastX =  SCR_WIDTH / 2.0;
+float lastY =  SCR_HEIGHT / 2.0;
 float fov   =  45.0f;
 const char *vertexShaderSource = "#version 330 core\n"
     "layout (location = 0) in vec3 aPos;\n"
@@ -48,7 +48,7 @@ const char *fragmentShaderSource = "#version 330 core\n"
     "   FragColor = vec4(lightColor * objectColor, 1.0);\n"
     "}\n\0";
 
-const char *lampFragmentShaderSource = "#version 330 cored\n"
+const char *lampFragmentShaderSource = "#version 330 core\n"
     "out vec4 FragColor;\n"
     "void main()\n"
     "{\n"
@@ -67,7 +67,7 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 #ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // uncomment this statement to fix compilation on OS X
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
     // glfw window creation
@@ -84,9 +84,9 @@ int main()
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
     // glad: load all OpenGL function pointers
     // ---------------------------------------
+    
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         std::cout << "Failed to initialize GLAD" << std::endl;
@@ -94,7 +94,6 @@ int main()
     }
 
 
-    glEnable(GL_DEPTH_TEST);
   
     float vertices[] = {
         -0.5f, -0.5f, -0.5f,
@@ -140,7 +139,7 @@ int main()
         -0.5f,  0.5f, -0.5f,
     };
     
-
+    glEnable(GL_DEPTH_TEST);
     unsigned int VBO, cubeVAO, lightVAO, vertexShader, fragmentShader, shaderProgram, lightFragmentShader, lightShaderProgram;
     
     glad_glGenVertexArrays(1, &cubeVAO);
@@ -208,6 +207,7 @@ int main()
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        //CUBE
         glad_glUseProgram(shaderProgram);
         glad_glUniform3f(glad_glGetUniformLocation(shaderProgram, "objectColor"), 1.0f, 0.5f, 0.31f);
         glad_glUniform3f(glad_glGetUniformLocation(shaderProgram, "lightColor"), 1.0f, 1.0f, 1.0f);
@@ -222,6 +222,7 @@ int main()
         glad_glBindVertexArray(cubeVAO);
         glad_glDrawArrays(GL_TRIANGLES, 0, 36);
         
+        //LIGHT
         glad_glUseProgram(lightShaderProgram);
         projection = glm::perspective(glm::radians(fov), SCR_WIDTH/static_cast<float>(SCR_HEIGHT), 0.1f, 100.0f);
         glUniformMatrix4fv(glGetUniformLocation(lightShaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
@@ -237,26 +238,18 @@ int main()
         
         
 
-        
-        // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
-    // optional: de-allocate all resources once they've outlived their purpose:
-    // ------------------------------------------------------------------------
     glDeleteVertexArrays(1, &lightVAO);
     glDeleteVertexArrays(1, &cubeVAO);
     glad_glDeleteBuffers(1, &VBO);
 
-    // glfw: terminate, clearing all previously allocated GLFW resources.
-    // ------------------------------------------------------------------
     glfwTerminate();
     return 0;
 }
 
-// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-// ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow *window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
@@ -273,12 +266,9 @@ void processInput(GLFWwindow *window)
         cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 }
 
-// glfw: whenever the window size changed (by OS or user resize) this callback function executes
-// ---------------------------------------------------------------------------------------------
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-    // make sure the viewport matches the new window dimensions; note that width and
-    // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
 }
 
@@ -292,18 +282,17 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
     }
 
     float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+    float yoffset = lastY - ypos;
     lastX = xpos;
     lastY = ypos;
 
-    float sensitivity = 0.1f; // change this value to your liking
+    float sensitivity = 0.1f;
     xoffset *= sensitivity;
     yoffset *= sensitivity;
 
     yaw += xoffset;
     pitch += yoffset;
 
-    // make sure that when pitch is out of bounds, screen doesn't get flipped
     if (pitch > 89.0f)
         pitch = 89.0f;
     if (pitch < -89.0f)
